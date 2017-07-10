@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {describe, beforeEach, it, sinon, expect} from 'test/lib/common';
+import { describe, beforeEach, it, sinon, expect } from 'test/lib/common';
 import ResponseParser from '../response_parser';
 
 describe("influxdb response parser", () => {
@@ -13,7 +13,7 @@ describe("influxdb response parser", () => {
             {
               "name": "cpu",
               "columns": ["tagKey"],
-              "values": [ ["datacenter"], ["hostname"], ["source"] ]
+              "values": [["datacenter"], ["hostname"], ["source"]]
             }
           ]
         }
@@ -27,6 +27,43 @@ describe("influxdb response parser", () => {
     });
   });
 
+  describe("SELECT pod_name, LAST(value)", () => {
+    var query = 'SELECT pod_name, LAST(value) FROM uptime';
+    var response = {
+      "results": [
+        {
+          "statement_id": 0,
+          "series": [{
+            "name": "uptime",
+            "tags": {"pod_name": "default-http-backend-2138921206-ttr2c"},
+            "columns": ["time", "pod_name", "last"],
+            "values": [[1499708520000, "default-http-backend-2138921206-ttr2c", 192650245]]
+          }, {
+            "name": "uptime",
+            "tags": {"pod_name": "es-0"},
+            "columns": ["time", "pod_name", "last"],
+            "values": [[1499708520000, "es-0", 278733206]]
+          }, {
+            "name": "uptime",
+            "tags": {"pod_name": "es-1"},
+            "columns": ["time", "pod_name", "last"],
+            "values": [[1499708520000, "es-1", 279640344]]
+          }, {
+            "name": "uptime",
+            "tags": {"pod_name": "es-2"},
+            "columns": ["time", "pod_name", "last"],
+            "values": [[1499708520000, "es-2", 278435090]]
+          }]}]};
+    var result = this.parser.parse(query, response);
+    it("should get four responses", () => {
+        expect(_.size(result)).to.be(4);
+        expect(result[0].text).to.be("default-http-backend-2138921206-ttr2c");
+        expect(result[1].text).to.be("es-0");
+        expect(result[1].text).to.be("es-1");
+        expect(result[1].text).to.be("es-2");
+      });
+  });
+
   describe("SHOW TAG VALUES response", () => {
     var query = 'SHOW TAG VALUES FROM "cpu" WITH KEY = "hostname"';
 
@@ -38,7 +75,7 @@ describe("influxdb response parser", () => {
               {
                 "name": "hostnameTagValues",
                 "columns": ["hostname"],
-                "values": [ ["server1"], ["server2"], ["server2"] ]
+                "values": [["server1"], ["server2"], ["server2"]]
               }
             ]
           }
@@ -57,26 +94,26 @@ describe("influxdb response parser", () => {
     describe("response from 0.12.0", () => {
       var response = {
         "results": [
-           {
-             "series": [
-               {
-                 "name": "cpu",
-                 "columns": [ "key", "value"],
-                 "values": [
-                   [ "source", "site" ],
-                   [ "source", "api" ]
-                 ]
-               },
-               {
-                 "name": "logins",
-                 "columns": [ "key", "value"],
-                 "values": [
-                   [ "source", "site" ],
-                   [ "source", "webapi"]
-                 ]
-               },
-             ]
-           }
+          {
+            "series": [
+              {
+                "name": "cpu",
+                "columns": ["key", "value"],
+                "values": [
+                  ["source", "site"],
+                  ["source", "api"]
+                ]
+              },
+              {
+                "name": "logins",
+                "columns": ["key", "value"],
+                "values": [
+                  ["source", "site"],
+                  ["source", "webapi"]
+                ]
+              },
+            ]
+          }
         ]
       };
 
@@ -124,7 +161,7 @@ describe("influxdb response parser", () => {
               {
                 "name": "cpu",
                 "columns": ["fieldKey"],
-                "values": [ [ "value"] ]
+                "values": [["value"]]
               }
             ]
           }
